@@ -1,7 +1,7 @@
 /**
  * Created by youssefelabd on 11/22/16.
  */
-public class credentialChecker {
+public class CredentialChecker {
     public static void main(String[] args) {
         System.out.println(passwordChecker("sjhgao"));
     }

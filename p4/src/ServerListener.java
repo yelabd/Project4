@@ -5,6 +5,7 @@ import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -14,23 +15,26 @@ public class ServerListener {
 
     public static HashMap<Integer, Socket> clientSocketStorage = new HashMap<Integer, Socket>();
     public static HashMap<Integer, ClientHandler> handlerStorage = new HashMap<Integer, ClientHandler>();
+    public static HashMap <Integer,UserInfo> currentSession = new HashMap<>();
+    public static ArrayList<String> gameTokens = new ArrayList<>();
     public static int userID = 0;
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
 
     public static void main(String[] args) throws IOException {
-        ServerSocket listener = new ServerSocket(5000);
+        try{
+        startClient();
 
-        while (true) {
-            Socket socket = listener.accept();
-
-            InputStreamReader isr = new InputStreamReader(socket.getInputStream());
-            BufferedReader in = new BufferedReader(isr);
-
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            String clientMessage = in.readLine();
-
-        }
-
-
+    }catch (IOException e){
+        e.printStackTrace();
+    }
     }
 
     public static void startClient() throws IOException {
@@ -43,6 +47,7 @@ public class ServerListener {
             System.out.println("Listening");
             while (true) {
                 clientSocketStorage.put(userID, serverSocket.accept());
+                System.out.println((char)27+"[33;1mGot a request from: "+ANSI_RESET+ clientSocketStorage.get(userID).getPort());
                 handlerStorage.put(userID,new ClientHandler(clientSocketStorage.get(userID),userID));
                 handlerStorage.get(userID).start();
                 userID++;
