@@ -15,7 +15,10 @@ public class ServerListener {
 
     public static HashMap<Integer, Socket> clientSocketStorage = new HashMap<Integer, Socket>();
     public static HashMap<Integer, ClientHandler> handlerStorage = new HashMap<Integer, ClientHandler>();
-    public static HashMap <Integer,UserInfo> currentSession = new HashMap<>();
+    public static HashMap <String,UserInfo> currentSession = new HashMap<>();
+    public static HashMap<String,ArrayList<UserInfo>> gameSession = new HashMap<>();
+    public static ArrayList<UserInfo> allUsers = new ArrayList<>();
+    //public static ArrayList<ArrayList<UserInfo>> sessionStorage = new ArrayList<ArrayList<UserInfo>>();
     public static ArrayList<String> gameTokens = new ArrayList<>();
     public static int userID = 0;
     public static final String ANSI_RESET = "\u001B[0m";
@@ -41,13 +44,13 @@ public class ServerListener {
         ServerSocket serverSocket;
 
         try {
-            System.out.println("Creating socket");
+            System.out.println((char)27+"[33;1mCreating socket"+ANSI_RESET);
             serverSocket = new ServerSocket(5000);
 
-            System.out.println("Listening");
+            System.out.println((char)27+"[33;1mListening"+ANSI_RESET);
             while (true) {
                 clientSocketStorage.put(userID, serverSocket.accept());
-                System.out.println((char)27+"[33;1mGot a request from: "+ANSI_RESET+ clientSocketStorage.get(userID).getPort());
+                System.out.println((char)27+"[32;1mGot a request from: "+ANSI_RESET+ clientSocketStorage.get(userID).getPort());
                 handlerStorage.put(userID,new ClientHandler(clientSocketStorage.get(userID),userID));
                 handlerStorage.get(userID).start();
                 userID++;

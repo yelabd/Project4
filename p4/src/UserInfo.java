@@ -5,12 +5,13 @@ public class UserInfo {
     private String username;
     private String userToken;
     private String gameToken;
-    private boolean isLeader;
+    private boolean isLeader = false;
     private int userID;
 
     public UserInfo(String username,String userToken,int userID){
         this.username = username;
         this.userToken = userToken;
+        this.userID = userID;
     }
     public String getUserToken() {
         return userToken;

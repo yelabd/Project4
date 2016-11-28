@@ -14,7 +14,8 @@ public class ClientHandler extends Thread{
     int userID;
     PrintWriter out;
     BufferedReader in;
-    String username;
+    private String playerToken;
+    static ArrayList<UserInfo> usersInSession;
     public static final String ANSI_RESET = "\u001B[0m";
 
 
@@ -70,8 +71,8 @@ public class ClientHandler extends Thread{
                     case "LOGIN":
                         if(trial.checkUserExists(splitInput[1])){
                             if (trial.checkUsernamePasswordCorrect(splitInput[1], splitInput[2])){
-                                String playerToken = TokenGenerators.userToken();
-                                ServerListener.currentSession.put(userID,new UserInfo(splitInput[1],playerToken,userID));
+                                 playerToken = TokenGenerators.userToken();
+                                ServerListener.currentSession.put(playerToken,new UserInfo(splitInput[1],playerToken,userID));
                                 out.println(loginResponse+"SUCCESS--"+playerToken);
                             }else{
                                 out.println(loginResponse+"INVALIDUSERPASSWORD");
@@ -88,19 +89,32 @@ public class ClientHandler extends Thread{
                             gameToken = TokenGenerators.gameToken();
                             }
                         }
+                        //ArrayList<UserInfo> userInfoArrayList = new ArrayList<UserInfo>();
+                        //userInfoArrayList.add(ServerListener.currentSession.get(splitInput[1]));
+                        //ServerListener.gameSession.put(gameToken,ServerListener.sessionStorage.add());
                         ServerListener.gameTokens.add(gameToken);
-                        ServerListener.currentSession.get(userID).setGameToken(gameToken);
-                        ServerListener.currentSession.get(userID).setLeader(true);
+                        ServerListener.currentSession.get(splitInput[1]).setGameToken(gameToken);
+                        ServerListener.currentSession.get(splitInput[1]).setLeader(true);
+                        ServerListener.allUsers.add(ServerListener.currentSession.get(splitInput[1]));
                         out.println(startResponse+"SUCCESS--"+gameToken);
                         break;
                     case "JOINGAME":
                         //TODO: create another hashmap and find way to get leader id
                         if (!gameTokenExists(splitInput[2])) {
                             out.println(joinResponse + "GAMEKEYNOTFOUND");
-                        }else if (!ServerListener.currentSession.containsKey(userID)){
+                        }else if (!ServerListener.currentSession.containsKey(splitInput[1])){
                             out.println(joinResponse+"USERNOTLOGGEDIN");
                         }else {
-                            sendToLeader();
+                            ServerListener.allUsers.add(ServerListener.currentSession.get(splitInput[1]));
+                            subloop : for(int i = 0; i < ServerListener.allUsers.size();i++){
+                                if (ServerListener.allUsers.get(i).isLeader() && ServerListener.allUsers.get(i).getGameToken().equals(splitInput[2])){
+                                    ServerListener.handlerStorage.get(ServerListener.allUsers.get(i).getUserID()).out.println("NEWPARTICIPANT--"+ServerListener.currentSession.get(playerToken).getUsername()+"--0");
+                                    System.out.println("\u001B[36;1mSent message to Leader with ID: "+ANSI_RESET+ServerListener.allUsers.get(i).getUserID());
+                                    break subloop;
+                                }else{
+                                    System.out.println("\u001B[35;1mExpected error: Could not send message to user; Attempt Number: "+(i+1)+"/"+ServerListener.allUsers.size());
+                                }
+                            }
                             //out.println("NEWPARTICIPANT--"+ServerListener.currentSession.get(splitInput[1]).getUsername()+"--0");
                         }
                         break;
@@ -139,6 +153,9 @@ public class ClientHandler extends Thread{
 
         }
         ServerListener.handlerStorage.get(1).out.println("NEWPARTICIPANT--"+ServerListener.currentSession.get(userID).getUsername()+"--0");
+    }
+    public String getPlayerToken(){
+        return this.playerToken;
     }
 
 
