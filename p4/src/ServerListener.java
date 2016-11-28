@@ -16,9 +16,7 @@ public class ServerListener {
     public static HashMap<Integer, Socket> clientSocketStorage = new HashMap<Integer, Socket>();
     public static HashMap<Integer, ClientHandler> handlerStorage = new HashMap<Integer, ClientHandler>();
     public static HashMap <String,UserInfo> currentSession = new HashMap<>();
-    public static HashMap<String,ArrayList<UserInfo>> gameSession = new HashMap<>();
     public static ArrayList<UserInfo> allUsers = new ArrayList<>();
-    //public static ArrayList<ArrayList<UserInfo>> sessionStorage = new ArrayList<ArrayList<UserInfo>>();
     public static ArrayList<String> gameTokens = new ArrayList<>();
     public static int userID = 0;
     public static final String ANSI_RESET = "\u001B[0m";

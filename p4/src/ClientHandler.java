@@ -148,7 +148,7 @@ public class ClientHandler extends Thread{
         }
         return false;
     }
-   
+
     public String getPlayerToken(){
         return this.playerToken;
     }
