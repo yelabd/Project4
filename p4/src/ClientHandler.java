@@ -148,12 +148,7 @@ public class ClientHandler extends Thread{
         }
         return false;
     }
-    public void sendToLeader(){
-        for(int i = 0; i < ServerListener.currentSession.size();i++){
-
-        }
-        ServerListener.handlerStorage.get(1).out.println("NEWPARTICIPANT--"+ServerListener.currentSession.get(userID).getUsername()+"--0");
-    }
+   
     public String getPlayerToken(){
         return this.playerToken;
     }
