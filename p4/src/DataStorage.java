@@ -1,10 +1,13 @@
+import org.omg.Messaging.SYNC_WITH_TRANSPORT;
+
 import java.io.*;
+import java.util.ArrayList;
 
 /**
  * Created by youssefelabd on 11/26/16.
  */
 public class DataStorage{
-    private File wordle;
+    private static File wordle;
     private File userDatabase;
     private static BufferedReader wordleIn;
     //private static BufferedReader userDatabaseIn;
@@ -41,6 +44,7 @@ public class DataStorage{
         return false;
     }
 
+
     public boolean checkUsernamePasswordCorrect(String username,String password) throws IOException{
         BufferedReader userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
         String fileLine;
@@ -66,6 +70,22 @@ public class DataStorage{
         userDatabaseOut.flush();
         userDatabaseOut.close();
         closer();
+    }
+
+    public static ArrayList<String> wordleDeckGetter() throws IOException{
+        BufferedReader wordleDeckIn = new BufferedReader(new FileReader(wordle));
+
+        ArrayList<String> wordleDeckList = new ArrayList<>();
+        String fileLine = "";
+
+        while ((fileLine = wordleDeckIn.readLine()) != null){
+            //System.out.println(fileLine);
+            wordleDeckList.add(fileLine);
+        }
+
+        wordleDeckIn.close();
+
+        return wordleDeckList;
     }
 
     public void closer(){

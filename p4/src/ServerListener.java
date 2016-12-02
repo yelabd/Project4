@@ -1,6 +1,7 @@
 import com.sun.org.apache.xerces.internal.util.URI;
 import com.sun.xml.internal.messaging.saaj.util.JaxmURI;
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+import sun.jvm.hotspot.ui.action.HSDBActionManager;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -16,6 +17,11 @@ public class ServerListener {
     public static HashMap<Integer, Socket> clientSocketStorage = new HashMap<Integer, Socket>();
     public static HashMap<Integer, ClientHandler> handlerStorage = new HashMap<Integer, ClientHandler>();
     public static HashMap <String,UserInfo> currentSession = new HashMap<>();
+    public static HashMap<String, GameSession> gameSessionInfo = new HashMap<>();
+    public static HashMap<String,ArrayList<String>> gameArray = new HashMap<>();
+    public static HashMap<String, HashMap<String,String>> suggestionArray = new HashMap<>();
+    //public static HashMap<String, ArrayList<String>> suggestionStorage = new HashMap<>();
+    //public static HashMap<String, Boolean> gameStarted = new HashMap<>();
     public static ArrayList<UserInfo> allUsers = new ArrayList<>();
     public static ArrayList<String> gameTokens = new ArrayList<>();
     public static int userID = 0;
