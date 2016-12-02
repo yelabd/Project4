@@ -40,7 +40,6 @@ public class ClientHandler extends Thread{
 
     public void clientCommunication() throws IOException{
         DataStorage trial = new DataStorage();
-        GameSession leaderControl = null;
 
         String inFromClient;
         String[] splitInput;
@@ -177,7 +176,6 @@ public class ClientHandler extends Thread{
                             ServerListener.suggestionArray.get(splitInput[2]).put(splitInput[1],currentSuggestion);
 
                             while (ServerListener.suggestionArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()){
-                            //System.out.println(ServerListener.gameArray.get(splitInput[2]).size());
                             }
                             //System.out.println("Made it");
                         }
