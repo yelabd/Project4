@@ -80,11 +80,13 @@ public class ClientHandler extends Thread{
                                  playerToken = TokenGenerators.userToken();
                                 ServerListener.currentSession.put(playerToken,new UserInfo(splitInput[1],playerToken,userID));
                                 out.println(loginResponse+"SUCCESS--"+playerToken);
-                            }else{
+                            }else if (!trial.checkUserExists(splitInput[1])){
+                                out.println(loginResponse+"UNKNOWNUSER");
+                            }else if (!trial.passwordChecker(splitInput[2])){
                                 out.println(loginResponse+"INVALIDUSERPASSWORD");
                             }
                         }else{
-                            out.println(createResponse+"UNKNOWNUSER");
+                            out.println(createResponse+"USERALREADYLOGGEDIN");
                         }
                         break;
                     case "STARTNEWGAME":

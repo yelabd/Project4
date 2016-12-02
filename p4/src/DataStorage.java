@@ -62,6 +62,21 @@ public class DataStorage{
         return false;
     }
 
+    public boolean passwordChecker(String password) throws IOException{
+        BufferedReader userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
+        String fileLine;
+        while ((fileLine = userDatabaseIn.readLine()) != null){
+            String[] splitFile = fileLine.split(":");
+                if (splitFile[1].equals(password)) {
+                    closer();
+                    return true;
+                }
+            }
+        userDatabaseIn.close();
+        closer();
+        return false;
+    }
+
     public synchronized void addUser(String username,String password) throws IOException {
         BufferedWriter userDatabaseOut = new BufferedWriter(new FileWriter(userDatabase,true));
         String fileInput = username+":"+password+":0:0:0";

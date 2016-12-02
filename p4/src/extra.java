@@ -8,6 +8,7 @@ public class extra {
             || request== "PLAYERSUGGESTION" || request== "PLAYERCHOICE"){
             return true;
         }
+
         else return false;
     }
 
