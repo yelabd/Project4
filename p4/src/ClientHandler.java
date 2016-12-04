@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by youssefelabd on 11/21/16.
@@ -20,8 +22,7 @@ public class ClientHandler extends Thread{
     private String gameToken;
     static ArrayList<UserInfo> usersInSession;
     private String[] currentCard;
-    private String currentSuggestion;
-    private String currentAnswer;
+    private String currentSuggestion,currentAnswer,currentChoice;
     public static final String ANSI_RESET = "\u001B[0m";
 
 
@@ -49,6 +50,7 @@ public class ClientHandler extends Thread{
         String joinResponse = "RESPONSE--JOINGAME--";
         String launchResponse = "RESPONSE--ALLPARTICIPANTSHAVEJOINED--";
         String playerSuggestion = "RESPONSE--PLAYERSUGGESTION--";
+        String choiceReponse = "REPSONSE--PLAYERCHOICE--";
 
             out = new PrintWriter(userSocket.getOutputStream(),true);
             in = new BufferedReader(new InputStreamReader(userSocket.getInputStream()));
@@ -107,6 +109,8 @@ public class ClientHandler extends Thread{
                         //ServerListener.suggestionArray.put(gameToken,new ArrayList<String>());
                         ServerListener.gameArray.get(gameToken).add(splitInput[1]);
                         ServerListener.suggestionArray.put(gameToken,new HashMap<String,String>());
+                        ServerListener.choiceArray.put(gameToken,new HashMap<String,String>());
+                        ServerListener.scoreArray.put(gameToken,new ArrayList<String>());
                         ServerListener.gameTokens.add(gameToken);
                         ServerListener.currentSession.get(splitInput[1]).setGameToken(gameToken);
                         ServerListener.currentSession.get(splitInput[1]).setLeader(true);
@@ -179,10 +183,48 @@ public class ClientHandler extends Thread{
 
                             while (ServerListener.suggestionArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()){
                             }
+                            if (ServerListener.currentSession.get(splitInput[1]).isLeader()){
+                                ArrayList<String> convertedSuggestionsArray = new ArrayList<>();
+                                for(int i = 0; i < ServerListener.gameArray.get(splitInput[2]).size();i++){
+                                    convertedSuggestionsArray.add(ServerListener.suggestionArray.get(splitInput[2]).get(ServerListener.gameArray.get(splitInput[2]).get(i)));
+                                }
+                                convertedSuggestionsArray.add(currentAnswer);
+                                ArrayList<String> shuffledArray = suggestionShuffler(convertedSuggestionsArray);
+                                ArrayList<String> temp = ServerListener.gameArray.get(splitInput[2]);
+                                String finalOut = "ROUNDOPTIONS";
+                                for (int i = 0; i < shuffledArray.size(); i++){
+                                    finalOut+="--"+shuffledArray.get(i);
+                                }
+                                for (int i = 0; i < temp.size();i++){
+                                    ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).out.println(finalOut);
+                                }
+                            }
                             //System.out.println("Made it");
                         }
                         break;
                     case "PLAYERCHOICE":
+                        if (!ServerListener.currentSession.containsKey(splitInput[1])){
+                            out.println(choiceReponse+"USERNOTLOGGEDIN");
+                        } else if (!gameTokenExists(splitInput[2])){//TODO: Check if it belongs to user
+                            out.println(choiceReponse+"INVALIDGAMETOKEN");
+                        }else{
+                            currentChoice = splitInput[3];
+                            //ServerListener.suggestionArray.put(splitInput[2],new HashMap<String,String>());
+                            ServerListener.choiceArray.get(splitInput[2]).put(splitInput[1],currentChoice);
+
+                            while (ServerListener.choiceArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()){
+                            }
+                            ServerListener.scoreArray.get(splitInput[2]).add(calculateScores(splitInput[1],splitInput[2]));
+                            while (ServerListener.scoreArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()){
+                            }
+                            String output = "";
+                            for (int i = 0; i < ServerListener.scoreArray.get(splitInput[2]).size();i++){
+                                output += "--"+ServerListener.scoreArray.get(splitInput[2]).get(i);
+                            }
+                            out.println("ROUNDRESULT"+output);
+
+                            //System.out.println("Made it");
+                        }
                         break;
                     default:
                         out.println();
@@ -190,6 +232,19 @@ public class ClientHandler extends Thread{
 
             }
 
+    }
+    public static ArrayList<String> suggestionShuffler(ArrayList<String> suggestions){
+        //TODO: Check if this changes with return
+        Random rand = ThreadLocalRandom.current();
+        for (int i = suggestions.size() - 1; i > 0; i--){
+            int randomIndex = rand.nextInt(i+1);
+
+            String temp = suggestions.get(randomIndex);
+            suggestions.set(randomIndex,suggestions.get(i));
+            suggestions.set(i,temp);
+
+        }
+        return suggestions;
     }
 
     public boolean checkGameToken(String gameToken) {
@@ -222,8 +277,40 @@ public class ClientHandler extends Thread{
             e.printStackTrace();
         }
         currentCard = wordleDeck.get(0).split(":");
+        currentAnswer = currentCard[1];
         //TODO: check if it is the final round
 
+
+    }
+
+    public String calculateScores(String userToken,String gameToken){
+        int cumulativeScore =0;
+        int numTimesFooledByOthers = 0;
+        int numTimesFooledOthers = 0;
+        String message = "Default";
+
+
+        if (currentChoice.equals(currentAnswer)){
+            cumulativeScore+= 10;
+            message = "You got it right!";
+        }else{
+            for(int i = 0; i < ServerListener.choiceArray.get(gameToken).size();i++){
+                if (currentChoice.equals(ServerListener.suggestionArray.get(gameToken).get(ServerListener.gameArray.get(gameToken).get(i))) && !ServerListener.gameArray.get(gameToken).get(i).equals(userToken)){
+                    message = "You were fooled by "+ServerListener.currentSession.get(ServerListener.gameArray.get(gameToken).get(i)).getUsername()+".";
+                    numTimesFooledByOthers++;
+                }
+            }
+
+        }
+        for(int i = 0; i < ServerListener.choiceArray.get(gameToken).size();i++){
+            if (currentSuggestion.equals(ServerListener.choiceArray.get(gameToken).get(ServerListener.gameArray.get(gameToken).get(i))) && !ServerListener.gameArray.get(gameToken).get(i).equals(userToken)){
+                message += "You fooled "+ServerListener.currentSession.get(ServerListener.gameArray.get(gameToken).get(i)).getUsername()+".";
+                cumulativeScore+=5;
+                numTimesFooledOthers++;
+            }
+        }
+        String outFinal = ServerListener.currentSession.get(userToken).getUsername() + "--"+message+"--"+cumulativeScore+"--"+numTimesFooledByOthers+"--"+numTimesFooledOthers;
+        return outFinal;
 
     }
 

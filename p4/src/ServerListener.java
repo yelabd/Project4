@@ -20,6 +20,8 @@ public class ServerListener {
     public static HashMap<String, GameSession> gameSessionInfo = new HashMap<>();
     public static HashMap<String,ArrayList<String>> gameArray = new HashMap<>();
     public static HashMap<String, HashMap<String,String>> suggestionArray = new HashMap<>();
+    public static HashMap<String, HashMap<String,String>> choiceArray = new HashMap<>();
+    public static HashMap<String, ArrayList<String>> scoreArray = new HashMap<>();
     //public static HashMap<String, ArrayList<String>> suggestionStorage = new HashMap<>();
     //public static HashMap<String, Boolean> gameStarted = new HashMap<>();
     public static ArrayList<UserInfo> allUsers = new ArrayList<>();
