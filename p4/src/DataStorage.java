@@ -1,7 +1,13 @@
 import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by youssefelabd on 11/26/16.
@@ -102,6 +108,71 @@ public class DataStorage{
 
         return wordleDeckList;
     }
+    public synchronized int[] getScores(String name) throws IOException{
+        int[] scores = new int[3];
+        BufferedReader userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
+        String fileLine;
+        while ((fileLine = userDatabaseIn.readLine()) != null){
+            String[] splitFile = fileLine.split(":");
+            if (splitFile[0].equals(name)) {
+                scores[0] = Integer.parseInt(splitFile[2]);
+                scores[1] = Integer.parseInt(splitFile[3]);
+                scores[2] = Integer.parseInt(splitFile[4]);
+
+            }
+        }
+        userDatabaseIn.close();
+        return scores;
+
+    }
+
+    public synchronized void updateScores(String name,String oldScore,String password, int cumulativeScore, int numTimesFooledOthers, int numTimesFooledByOthers) throws IOException {
+        BufferedReader userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
+        BufferedWriter userDatabaseOut = new BufferedWriter(new FileWriter(userDatabase));
+        String fileLine, totalFile = "";
+        String newOut = name + ":" + password + ":" + cumulativeScore + ":" + numTimesFooledOthers + ":" + numTimesFooledByOthers;
+
+
+        /*Path path = Paths.get("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt");
+        Charset charset = StandardCharsets.UTF_8;
+
+        String content = new String(Files.readAllBytes(path), charset);
+        content = content.replaceAll(oldScore, newOut);
+        Files.write(path, content.getBytes(charset));
+
+
+        while ((fileLine = userDatabaseIn.readLine()) != null){
+            String[] splitFile = fileLine.split(":");
+            if (splitFile[0].equals(name)) {
+                String newOut1 = splitFile[0] + ":" + splitFile[1]  + ":" + cumulativeScore  + ":" + numTimesFooledOthers + ":" + numTimesFooledByOthers;
+                totalFile += newOut1;
+            }
+            else{
+                totalFile+= fileLine;
+            }
+        }
+
+        userDatabaseOut.write(totalFile);
+        userDatabaseOut.newLine();
+        userDatabaseOut.flush();
+        userDatabaseIn.close();
+        userDatabaseOut.close();
+        */
+
+
+        Path filePath = Paths.get(userDatabase.getPath());
+        List<String> fileContent = new ArrayList<>(Files.readAllLines(filePath, StandardCharsets.UTF_8));
+
+        for (int i = 0; i < fileContent.size(); i++) {
+            if (fileContent.get(i).equals(oldScore)) {
+                fileContent.set(i, newOut);
+                break;
+            }
+        }
+
+        Files.write(filePath, fileContent, StandardCharsets.UTF_8);
+    }
+
 
     public void closer(){
         try {

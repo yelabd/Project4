@@ -5,41 +5,40 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by youssefelabd on 11/21/16.
  */
-public class ClientHandler extends Thread{
+public class ClientHandler extends Thread {
     Socket userSocket;
     int userID;
     PrintWriter out;
     BufferedReader in;
-    private String playerToken;
+    private String playerToken,playerName,playerPassword;
     private String gameToken;
     static ArrayList<UserInfo> usersInSession;
     private String[] currentCard;
-    private String currentSuggestion,currentAnswer,currentChoice;
+    private String currentSuggestion, currentAnswer, currentChoice;
     public static final String ANSI_RESET = "\u001B[0m";
+    private int cumulativeScore = 0, numTimesFooledByOthers = 0, numTimesFooledOthers = 0;
 
 
-    public ClientHandler(Socket socket, int userID){
+    public ClientHandler(Socket socket, int userID) {
         this.userSocket = socket;
         this.userID = userID;
     }
 
-    public void run(){
-        try{
+    public void run() {
+        try {
             clientCommunication();
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void clientCommunication() throws IOException{
+    public void clientCommunication() throws IOException {
         DataStorage trial = new DataStorage();
 
         String inFromClient;
@@ -52,84 +51,104 @@ public class ClientHandler extends Thread{
         String playerSuggestion = "RESPONSE--PLAYERSUGGESTION--";
         String choiceReponse = "REPSONSE--PLAYERCHOICE--";
 
-            out = new PrintWriter(userSocket.getOutputStream(),true);
-            in = new BufferedReader(new InputStreamReader(userSocket.getInputStream()));
+        out = new PrintWriter(userSocket.getOutputStream(), true);
+        in = new BufferedReader(new InputStreamReader(userSocket.getInputStream()));
 
-            mainLoop : while (true){
-                inFromClient = in.readLine();
-                System.out.println((char)27+"[34;1mClient "+userID+": "+ ANSI_RESET+inFromClient);
+        mainLoop:
+        while (true) {
+            inFromClient = in.readLine();
+            if (inFromClient == null) {
+
+            } else {
+                System.out.println((char) 27 + "[34;1mClient " + userID + ": " + ANSI_RESET + inFromClient);
                 splitInput = inFromClient.split("--");
                 //check if user already exists (1) and invalid message format (2)
                 String firstInput = splitInput[0];
-                switch (firstInput){
+                switch (firstInput) {
                     case "CREATENEWUSER":
-                        if(!CredentialChecker.usernameChecker(splitInput[1])){
-                        out.println(createResponse+"INVALIDUSERNAME");
-                        }else if (!CredentialChecker.passwordChecker(splitInput[2])){
-                        out.println(createResponse+"INVALIDPASSWORD");
-                        }else {
+                        if (splitInput.length != 3){
+                            out.println(createResponse + "INVALIDMESSAGEFORMAT");
+                        } else if (!CredentialChecker.usernameChecker(splitInput[1])) {
+                            out.println(createResponse + "INVALIDUSERNAME");
+                        } else if (!CredentialChecker.passwordChecker(splitInput[2])) {
+                            out.println(createResponse + "INVALIDPASSWORD");
+                        } else {
                             if (!trial.checkUserExists(splitInput[1])) {
                                 trial.addUser(splitInput[1], splitInput[2]);
-                                out.println(createResponse+"SUCCESS");
-                            }else{
-                                out.println(createResponse+"USERALREADYEXISTS");
+                                out.println(createResponse + "SUCCESS");
+                            } else {
+                                out.println(createResponse + "USERALREADYEXISTS");
                             }
                         }
                         break;
                     case "LOGIN":
-                        if(trial.checkUserExists(splitInput[1])){
-                            if (trial.checkUsernamePasswordCorrect(splitInput[1], splitInput[2])){
-                                 playerToken = TokenGenerators.userToken();
-                                ServerListener.currentSession.put(playerToken,new UserInfo(splitInput[1],playerToken,userID));
-                                out.println(loginResponse+"SUCCESS--"+playerToken);
-                            }else if (!trial.checkUserExists(splitInput[1])){
-                                out.println(loginResponse+"UNKNOWNUSER");
-                            }else if (!trial.passwordChecker(splitInput[2])){
-                                out.println(loginResponse+"INVALIDUSERPASSWORD");
+                        if (splitInput.length != 3){
+                            out.println(loginResponse + "INVALIDMESSAGEFORMAT");
+                        } else if (trial.checkUserExists(splitInput[1])) {
+                            if(ServerListener.loggedOn.containsKey(splitInput[1])){
+                                out.println(loginResponse+"USERALREADYLOGGEDIN");
+                            } else if (!trial.checkUserExists(splitInput[1])) {
+                                out.println(loginResponse + "UNKNOWNUSER");
+                            } else if (trial.checkUsernamePasswordCorrect(splitInput[1], splitInput[2])) {
+                                playerToken = TokenGenerators.userToken();
+                                ServerListener.loggedOn.put(splitInput[1], true);
+                                ServerListener.currentSession.put(playerToken, new UserInfo(splitInput[1], playerToken, userID));
+                                out.println(loginResponse + "SUCCESS--" + playerToken);
+                                int[] userScores = trial.getScores(splitInput[1]);
+                                this.cumulativeScore = userScores[0];
+                                this.numTimesFooledOthers = userScores[1];
+                                this.numTimesFooledByOthers = userScores[2];
+                                this.playerName = splitInput[1];
+                                this.playerPassword = splitInput[2];
+                            }else{
+                                out.println(loginResponse + "INVALIDUSERPASSWORD");
                             }
-                        }else{
-                            out.println(createResponse+"USERALREADYLOGGEDIN");
+                        } else {
+                            out.println(loginResponse + "UNKNOWNUSER");
                         }
                         break;
                     case "STARTNEWGAME":
                         //TODO: add other status cases
                         String gameToken = TokenGenerators.gameToken();
-                        if (ServerListener.gameTokens.size() > 0){
-                            while (!checkGameToken(gameToken)){
-                            gameToken = TokenGenerators.gameToken();
+
+                            if (ServerListener.gameTokens.size() > 0) {
+                                while (!checkGameToken(gameToken)) {
+                                    gameToken = TokenGenerators.gameToken();
+                                }
                             }
-                        }
-                        //ArrayList<UserInfo> userInfoArrayList = new ArrayList<UserInfo>();
-                        //userInfoArrayList.add(ServerListener.currentSession.get(splitInput[1]));
-                        //ServerListener.gameSession.put(gameToken,ServerListener.sessionStorage.add());
-                        this.gameToken = gameToken;
-                        //ServerListener.gameSessionInfo.put(gameToken,new GameSession(gameToken,splitInput[1],userID));
-                        //leaderControl = new GameSession(gameToken,splitInput[1],userID);
-                        ServerListener.gameArray.put(gameToken,new ArrayList<String>());
-                        //ServerListener.suggestionArray.put(gameToken,new ArrayList<String>());
-                        ServerListener.gameArray.get(gameToken).add(splitInput[1]);
-                        ServerListener.suggestionArray.put(gameToken,new HashMap<String,String>());
-                        ServerListener.choiceArray.put(gameToken,new HashMap<String,String>());
-                        ServerListener.scoreArray.put(gameToken,new ArrayList<String>());
-                        ServerListener.gameTokens.add(gameToken);
-                        ServerListener.currentSession.get(splitInput[1]).setGameToken(gameToken);
-                        ServerListener.currentSession.get(splitInput[1]).setLeader(true);
-                        ServerListener.allUsers.add(ServerListener.currentSession.get(splitInput[1]));
-                        out.println(startResponse+"SUCCESS--"+gameToken);
+                            //ArrayList<UserInfo> userInfoArrayList = new ArrayList<UserInfo>();
+                            //userInfoArrayList.add(ServerListener.currentSession.get(splitInput[1]));
+                            //ServerListener.gameSession.put(gameToken,ServerListener.sessionStorage.add());
+                            this.gameToken = gameToken;
+                            //ServerListener.gameSessionInfo.put(gameToken,new GameSession(gameToken,splitInput[1],userID));
+                            //leaderControl = new GameSession(gameToken,splitInput[1],userID);
+                            ServerListener.gameArray.put(gameToken, new ArrayList<String>());
+                            //ServerListener.suggestionArray.put(gameToken,new ArrayList<String>());
+                            ServerListener.gameArray.get(gameToken).add(splitInput[1]);
+                            ServerListener.suggestionArray.put(gameToken, new HashMap<String, String>());
+                            ServerListener.choiceArray.put(gameToken, new HashMap<String, String>());
+                            ServerListener.scoreArray.put(gameToken, new ArrayList<String>());
+                            ServerListener.updatedScores.put(gameToken,new ArrayList<String>());
+                            ServerListener.gameTokens.add(gameToken);
+                            ServerListener.currentSession.get(splitInput[1]).setGameToken(gameToken);
+                            ServerListener.currentSession.get(splitInput[1]).setLeader(true);
+                            ServerListener.allUsers.add(ServerListener.currentSession.get(splitInput[1]));
+                            out.println(startResponse + "SUCCESS--" + gameToken);
+
                         break;
                     case "JOINGAME":
                         //TODO: create another hashmap and find way to get leader id
                         if (!gameTokenExists(splitInput[2])) {
                             out.println(joinResponse + "GAMEKEYNOTFOUND");
-                        }else if (!ServerListener.currentSession.containsKey(splitInput[1])){
-                            out.println(joinResponse+"USERNOTLOGGEDIN");
-                        }else {
+                        } else if (!ServerListener.currentSession.containsKey(splitInput[1])) {
+                            out.println(joinResponse + "USERNOTLOGGEDIN");
+                        } else {
                             this.gameToken = splitInput[2];
                             ServerListener.allUsers.add(ServerListener.currentSession.get(splitInput[1]));
                             ServerListener.gameArray.get(this.gameToken).add(splitInput[1]);
                             //TODO: Find shorter way to do the line below
-                            ServerListener.handlerStorage.get(ServerListener.currentSession.get(ServerListener.gameArray.get(this.gameToken).get(0)).getUserID()).out.println("NEWPARTICIPANT--"+ServerListener.currentSession.get(playerToken).getUsername()+"--0");
-                            out.println(joinResponse+"SUCCESS--"+splitInput[2]);
+                            ServerListener.handlerStorage.get(ServerListener.currentSession.get(ServerListener.gameArray.get(this.gameToken).get(0)).getUserID()).out.println("NEWPARTICIPANT--" + ServerListener.currentSession.get(playerToken).getUsername() + "--0");
+                            out.println(joinResponse + "SUCCESS--" + splitInput[2]);
                             //if (ServerListener.gameSessionInfo.get(splitInput[2]).gameToken.equals(splitInput[2])){
                             /*if(leaderControl.gameToken.equals(splitInput[2])){
                                 //ServerListener.gameSessionInfo.get(splitInput[2]).players.add(splitInput[1]);
@@ -153,18 +172,23 @@ public class ClientHandler extends Thread{
                         }
                         break;
                     case "ALLPARTICIPANTSHAVEJOINED":
-                        if (!ServerListener.currentSession.containsKey(splitInput[1])){
+                        if (!ServerListener.currentSession.containsKey(splitInput[1])) {
                             out.println("RESPONSE--ALLPARTICIPANTSHAVEJOINED--USERNOTLOGGEDIN");
-                        } else if (!gameTokenExists(splitInput[2])){
+                        } else if (!gameTokenExists(splitInput[2])) {
                             out.println("RESPONSE--ALLPARTICIPANTSHAVEJOINED--INVALIDGAMETOKEN");
-                        } else if(!ServerListener.currentSession.get(splitInput[1]).isLeader()){
+                        } else if (!ServerListener.currentSession.get(splitInput[1]).isLeader()) {
                             out.println("RESPONSE--ALLPARTICIPANTSHAVEJOINED--USERNOTGAMELEADER");
-                        }else{
-                            startGame(splitInput[2],splitInput[1]);
+                        } else {
+                            startGame(splitInput[2]);
+                            currentCard = ServerListener.deckCollections.get(splitInput[2]).get(0).split(":");
+                            currentAnswer = currentCard[1];
+                            ServerListener.deckCollections.get(splitInput[2]).remove(0);
                             ArrayList<String> temp = ServerListener.gameArray.get(splitInput[2]);
                             //ServerListener.gameSessionInfo.get(splitInput[2]).collectPlayers();
-                            for (int i = 0; i < temp.size();i++){
-                                ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).out.println("NEWGAMEWORD--"+currentCard[0]+"--"+currentCard[1]);
+                            for (int i = 0; i < temp.size(); i++) {
+                                ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).out.println("NEWGAMEWORD--" + currentCard[0] + "--" + currentCard[1]);
+                                ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).currentCard = this.currentCard;
+                                ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).currentAnswer = this.currentAnswer;
                                 //System.out.println(ServerListener.gameSessionInfo.get(splitInput[2]).players.size());
                             }
 
@@ -172,30 +196,32 @@ public class ClientHandler extends Thread{
                         }
                         break;
                     case "PLAYERSUGGESTION":
-                        if (!ServerListener.currentSession.containsKey(splitInput[1])){
-                            out.println(playerSuggestion+"USERNOTLOGGEDIN");
-                        } else if (!gameTokenExists(splitInput[2])){//TODO: Check if it belongs to user
-                            out.println(playerSuggestion+"INVALIDGAMETOKEN");
-                        }else{
+                        if(splitInput.length != 4){
+                            out.println(playerSuggestion+"INVALIDMESSAGEFORMAT");
+                        } else if (!ServerListener.currentSession.containsKey(splitInput[1])) {
+                            out.println(playerSuggestion + "USERNOTLOGGEDIN");
+                        } else if (!gameTokenExists(splitInput[2])) {//TODO: Check if it belongs to user
+                            out.println(playerSuggestion + "INVALIDGAMETOKEN");
+                        } else {
                             currentSuggestion = splitInput[3];
                             //ServerListener.suggestionArray.put(splitInput[2],new HashMap<String,String>());
-                            ServerListener.suggestionArray.get(splitInput[2]).put(splitInput[1],currentSuggestion);
+                            ServerListener.suggestionArray.get(splitInput[2]).put(splitInput[1], currentSuggestion);
 
-                            while (ServerListener.suggestionArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()){
+                            while (ServerListener.suggestionArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()) {
                             }
-                            if (ServerListener.currentSession.get(splitInput[1]).isLeader()){
+                            if (ServerListener.currentSession.get(splitInput[1]).isLeader()) {
                                 ArrayList<String> convertedSuggestionsArray = new ArrayList<>();
-                                for(int i = 0; i < ServerListener.gameArray.get(splitInput[2]).size();i++){
+                                for (int i = 0; i < ServerListener.gameArray.get(splitInput[2]).size(); i++) {
                                     convertedSuggestionsArray.add(ServerListener.suggestionArray.get(splitInput[2]).get(ServerListener.gameArray.get(splitInput[2]).get(i)));
                                 }
                                 convertedSuggestionsArray.add(currentAnswer);
                                 ArrayList<String> shuffledArray = suggestionShuffler(convertedSuggestionsArray);
                                 ArrayList<String> temp = ServerListener.gameArray.get(splitInput[2]);
                                 String finalOut = "ROUNDOPTIONS";
-                                for (int i = 0; i < shuffledArray.size(); i++){
-                                    finalOut+="--"+shuffledArray.get(i);
+                                for (int i = 0; i < shuffledArray.size(); i++) {
+                                    finalOut += "--" + shuffledArray.get(i);
                                 }
-                                for (int i = 0; i < temp.size();i++){
+                                for (int i = 0; i < temp.size(); i++) {
                                     ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).out.println(finalOut);
                                 }
                             }
@@ -203,45 +229,89 @@ public class ClientHandler extends Thread{
                         }
                         break;
                     case "PLAYERCHOICE":
-                        if (!ServerListener.currentSession.containsKey(splitInput[1])){
-                            out.println(choiceReponse+"USERNOTLOGGEDIN");
-                        } else if (!gameTokenExists(splitInput[2])){//TODO: Check if it belongs to user
-                            out.println(choiceReponse+"INVALIDGAMETOKEN");
-                        }else{
+                        if(splitInput.length != 4){
+                            out.println(choiceReponse+"INVALIDMESSAGEFORMAT");
+                        } else if (!ServerListener.currentSession.containsKey(splitInput[1])) {
+                            out.println(choiceReponse + "USERNOTLOGGEDIN");
+                        } else if (!gameTokenExists(splitInput[2])) {//TODO: Check if it belongs to user
+                            out.println(choiceReponse + "INVALIDGAMETOKEN");
+                        } else {
                             currentChoice = splitInput[3];
                             //ServerListener.suggestionArray.put(splitInput[2],new HashMap<String,String>());
-                            ServerListener.choiceArray.get(splitInput[2]).put(splitInput[1],currentChoice);
+                            ServerListener.choiceArray.get(splitInput[2]).put(splitInput[1], currentChoice);
 
-                            while (ServerListener.choiceArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()){
-                            }
-                            ServerListener.scoreArray.get(splitInput[2]).add(calculateScores(splitInput[1],splitInput[2]));
-                            while (ServerListener.scoreArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()){
-                            }
-                            String output = "";
-                            for (int i = 0; i < ServerListener.scoreArray.get(splitInput[2]).size();i++){
-                                output += "--"+ServerListener.scoreArray.get(splitInput[2]).get(i);
-                            }
-                            out.println("ROUNDRESULT"+output);
 
-                            //System.out.println("Made it");
+                            while (ServerListener.choiceArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()) {
+                            }
+                            //System.out.println("Here1");
+                            ServerListener.scoreArray.get(splitInput[2]).add(calculateScores(splitInput[1], splitInput[2]));
+                            while (ServerListener.scoreArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()) {
+                            }
+                            //System.out.println("Here2");
+                            if (ServerListener.currentSession.get(splitInput[1]).isLeader()) {
+                                String output = "";
+
+                                for (int i = 0; i < ServerListener.scoreArray.get(splitInput[2]).size(); i++) {
+                                    output += "--" + ServerListener.scoreArray.get(splitInput[2]).get(i);
+
+                                }
+                                ArrayList<String> temp = ServerListener.gameArray.get(splitInput[2]);
+                                for (int i = 0; i < temp.size();i++) {
+                                    ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).out.println("ROUNDRESULT"+output);
+                                }
+
+                            }
+                            //out.println("ROUNDRESULT" + output);
+                            if (ServerListener.currentSession.get(splitInput[1]).isLeader()) {
+                                if (ServerListener.deckCollections.get(splitInput[2]).size() > 0) {
+                                    currentCard = ServerListener.deckCollections.get(splitInput[2]).get(0).split(":");
+                                    currentAnswer = currentCard[1];
+                                    ServerListener.deckCollections.get(splitInput[2]).remove(0);
+                                    ServerListener.choiceArray.get(splitInput[2]).clear();
+                                    ServerListener.scoreArray.get(splitInput[2]).clear();
+                                    ServerListener.suggestionArray.get(splitInput[2]).clear();
+                                    ArrayList<String> temp = ServerListener.gameArray.get(splitInput[2]);
+                                    //ServerListener.gameSessionInfo.get(splitInput[2]).collectPlayers();
+                                    for (int i = 0; i < temp.size(); i++) {
+                                        ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).out.println("NEWGAMEWORD--" + currentCard[0] + "--" + currentCard[1]);
+                                        ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).currentCard = this.currentCard;
+                                        ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).currentAnswer = this.currentAnswer;
+                                        //System.out.println(ServerListener.gameSessionInfo.get(splitInput[2]).players.size());
+                                    }
+                                } else {
+                                    ArrayList<String> temp = ServerListener.gameArray.get(splitInput[2]);
+
+                                    for (int i = 0; i < temp.size(); i++) {
+                                        ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).out.println("GAMEOVER");
+
+                                    }
+                                }
+
+                                //System.out.println("Made it");
+                            }
                         }
                         break;
-                    default:
-                        out.println();
-                }
+                    case "LOGOUT":
+                        break mainLoop;
 
+                    default:
+                        //out.println();
+                }
             }
 
+        }
+
     }
-    public static ArrayList<String> suggestionShuffler(ArrayList<String> suggestions){
+
+    public static ArrayList<String> suggestionShuffler(ArrayList<String> suggestions) {
         //TODO: Check if this changes with return
         Random rand = ThreadLocalRandom.current();
-        for (int i = suggestions.size() - 1; i > 0; i--){
-            int randomIndex = rand.nextInt(i+1);
+        for (int i = suggestions.size() - 1; i > 0; i--) {
+            int randomIndex = rand.nextInt(i + 1);
 
             String temp = suggestions.get(randomIndex);
-            suggestions.set(randomIndex,suggestions.get(i));
-            suggestions.set(i,temp);
+            suggestions.set(randomIndex, suggestions.get(i));
+            suggestions.set(i, temp);
 
         }
         return suggestions;
@@ -255,6 +325,7 @@ public class ClientHandler extends Thread{
         }
         return true;
     }
+
     public boolean gameTokenExists(String gameToken) {
         for (int i = 0; i < ServerListener.gameTokens.size(); i++) {
             if (ServerListener.gameTokens.get(i).equals(gameToken)) {
@@ -264,11 +335,11 @@ public class ClientHandler extends Thread{
         return false;
     }
 
-    public String getPlayerToken(){
+    public String getPlayerToken() {
         return this.playerToken;
     }
 
-    public void startGame(String gameToken,String leaderToken){
+    public void startGame(String gameToken, String leaderToken) {
         //ServerListener.gameStarted.put(gameToken,true);
         ArrayList<String> wordleDeck = null;
         try {
@@ -283,36 +354,68 @@ public class ClientHandler extends Thread{
 
     }
 
-    public String calculateScores(String userToken,String gameToken){
-        int cumulativeScore =0;
-        int numTimesFooledByOthers = 0;
-        int numTimesFooledOthers = 0;
+    public void startGame(String gameToken) {
+        ArrayList<String> wordleDeck = null;
+        try {
+            wordleDeck = DataStorage.wordleDeckGetter();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Collections.shuffle(wordleDeck);
+        ServerListener.deckCollections.put(gameToken, wordleDeck);
+
+    }
+
+    public String calculateScores(String userToken, String gameToken) {
         String message = "Default";
+        String oldScore = this.playerName+":"+playerPassword+":"+cumulativeScore+":"+numTimesFooledOthers+":"+numTimesFooledByOthers;
 
-
-        if (currentChoice.equals(currentAnswer)){
-            cumulativeScore+= 10;
+        if (currentChoice.equals(currentAnswer)) {
+            cumulativeScore += 10;
             message = "You got it right!";
-        }else{
-            for(int i = 0; i < ServerListener.choiceArray.get(gameToken).size();i++){
-                if (currentChoice.equals(ServerListener.suggestionArray.get(gameToken).get(ServerListener.gameArray.get(gameToken).get(i))) && !ServerListener.gameArray.get(gameToken).get(i).equals(userToken)){
-                    message = "You were fooled by "+ServerListener.currentSession.get(ServerListener.gameArray.get(gameToken).get(i)).getUsername()+".";
+        } else {
+            for (int i = 0; i < ServerListener.choiceArray.get(gameToken).size(); i++) {
+                if (currentChoice.equals(ServerListener.suggestionArray.get(gameToken).get(ServerListener.gameArray.get(gameToken).get(i))) && !ServerListener.gameArray.get(gameToken).get(i).equals(userToken)) {
+                    message = "You were fooled by " + ServerListener.currentSession.get(ServerListener.gameArray.get(gameToken).get(i)).getUsername() + ".";
                     numTimesFooledByOthers++;
                 }
             }
 
         }
-        for(int i = 0; i < ServerListener.choiceArray.get(gameToken).size();i++){
-            if (currentSuggestion.equals(ServerListener.choiceArray.get(gameToken).get(ServerListener.gameArray.get(gameToken).get(i))) && !ServerListener.gameArray.get(gameToken).get(i).equals(userToken)){
-                message += "You fooled "+ServerListener.currentSession.get(ServerListener.gameArray.get(gameToken).get(i)).getUsername()+".";
-                cumulativeScore+=5;
+        for (int i = 0; i < ServerListener.choiceArray.get(gameToken).size(); i++) {
+            if (currentSuggestion.equals(ServerListener.choiceArray.get(gameToken).get(ServerListener.gameArray.get(gameToken).get(i))) && !ServerListener.gameArray.get(gameToken).get(i).equals(userToken)) {
+                message += "You fooled " + ServerListener.currentSession.get(ServerListener.gameArray.get(gameToken).get(i)).getUsername() + ".";
+                cumulativeScore += 5;
                 numTimesFooledOthers++;
             }
         }
-        String outFinal = ServerListener.currentSession.get(userToken).getUsername() + "--"+message+"--"+cumulativeScore+"--"+numTimesFooledByOthers+"--"+numTimesFooledOthers;
+        String outFinal = ServerListener.currentSession.get(userToken).getUsername() + "--" + message + "--" + cumulativeScore + "--" + numTimesFooledByOthers + "--" + numTimesFooledOthers;
+        String newOut = playerName + ":" + playerPassword  + ":" + cumulativeScore  + ":" + numTimesFooledOthers + ":" + numTimesFooledByOthers;
+        ServerListener.updatedScores.get(gameToken).add(newOut);
+
+
+        /*
+        if (ServerListener.currentSession.get(playerToken).isLeader()){
+            while(ServerListener.updatedScores.get(gameToken).size() != ServerListener.gameArray.get(gameToken).size()){
+            }
+
+        }
+
+
+        try {
+            DataStorage ds = new DataStorage();
+            ds.updateScores(playerName,oldScore,playerPassword,cumulativeScore,numTimesFooledOthers,numTimesFooledByOthers);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+          */
+
         return outFinal;
 
     }
+
+
+
 
 
 
