@@ -192,7 +192,6 @@ public class ClientHandler extends Thread {
                                 //System.out.println(ServerListener.gameSessionInfo.get(splitInput[2]).players.size());
                             }
 
-                            //out.println("NEWGAMEWORD--"+currentCard[0]+"--"+currentCard[1]);
                         }
                         break;
                     case "PLAYERSUGGESTION":
