@@ -12,35 +12,39 @@ import java.util.List;
 /**
  * Created by youssefelabd on 11/26/16.
  */
-public class DataStorage{
+public class DataStorage {
     private static File wordle;
     private File userDatabase;
     private static BufferedReader wordleIn;
     //private static BufferedReader userDatabaseIn;
     public static BufferedWriter userDatabaseOut;
 
-    public DataStorage() throws IOException{
+    public DataStorage() throws IOException {
 
-            wordle = new File("/Users/youssefelabd/Desktop/cs180/project4/WordleDeck.txt");
-            userDatabase = new File("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt");
-            if (!wordle.exists()){
-                wordle.createNewFile();
-            }
-            if (!userDatabase.exists()){
+        wordle = new File("/Users/youssefelabd/Desktop/cs180/project4/WordleDeck.txt");
+        //wordle = new File("./UserDatabase");
+
+        userDatabase = new File("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt");
+        //userDatabase = new File("./WordleDeck");
+
+        if (!wordle.exists()) {
+            wordle.createNewFile();
+        }
+        if (!userDatabase.exists()) {
             userDatabase.createNewFile();
-            }
-            wordleIn = new BufferedReader(new FileReader(wordle));
-            //userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
-            userDatabaseOut = new BufferedWriter(new FileWriter(userDatabase,true));
+        }
+        wordleIn = new BufferedReader(new FileReader(wordle));
+        //userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
+        userDatabaseOut = new BufferedWriter(new FileWriter(userDatabase, true));
 
     }
 
-    public boolean checkUserExists(String username) throws IOException{
+    public boolean checkUserExists(String username) throws IOException {
         BufferedReader userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
         String fileLine;
-        while ((fileLine = userDatabaseIn.readLine()) != null){
+        while ((fileLine = userDatabaseIn.readLine()) != null) {
             String[] splitFile = fileLine.split(":");
-            if (splitFile[0].equals(username)){
+            if (splitFile[0].equals(username)) {
                 closer();
                 return true;
             }
@@ -51,10 +55,10 @@ public class DataStorage{
     }
 
 
-    public boolean checkUsernamePasswordCorrect(String username,String password) throws IOException{
+    public boolean checkUsernamePasswordCorrect(String username, String password) throws IOException {
         BufferedReader userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
         String fileLine;
-        while ((fileLine = userDatabaseIn.readLine()) != null){
+        while ((fileLine = userDatabaseIn.readLine()) != null) {
             String[] splitFile = fileLine.split(":");
             if (splitFile[0].equals(username)) {
                 if (splitFile[1].equals(password)) {
@@ -68,24 +72,24 @@ public class DataStorage{
         return false;
     }
 
-    public boolean passwordChecker(String password) throws IOException{
+    public boolean passwordChecker(String password) throws IOException {
         BufferedReader userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
         String fileLine;
-        while ((fileLine = userDatabaseIn.readLine()) != null){
+        while ((fileLine = userDatabaseIn.readLine()) != null) {
             String[] splitFile = fileLine.split(":");
-                if (splitFile[1].equals(password)) {
-                    closer();
-                    return true;
-                }
+            if (splitFile[1].equals(password)) {
+                closer();
+                return true;
             }
+        }
         userDatabaseIn.close();
         closer();
         return false;
     }
 
-    public synchronized void addUser(String username,String password) throws IOException {
-        BufferedWriter userDatabaseOut = new BufferedWriter(new FileWriter(userDatabase,true));
-        String fileInput = username+":"+password+":0:0:0";
+    public synchronized void addUser(String username, String password) throws IOException {
+        BufferedWriter userDatabaseOut = new BufferedWriter(new FileWriter(userDatabase, true));
+        String fileInput = username + ":" + password + ":0:0:0";
         userDatabaseOut.write(fileInput);
         userDatabaseOut.newLine();
         userDatabaseOut.flush();
@@ -93,13 +97,13 @@ public class DataStorage{
         closer();
     }
 
-    public static ArrayList<String> wordleDeckGetter() throws IOException{
+    public static ArrayList<String> wordleDeckGetter() throws IOException {
         BufferedReader wordleDeckIn = new BufferedReader(new FileReader(wordle));
 
         ArrayList<String> wordleDeckList = new ArrayList<>();
         String fileLine = "";
 
-        while ((fileLine = wordleDeckIn.readLine()) != null){
+        while ((fileLine = wordleDeckIn.readLine()) != null) {
             //System.out.println(fileLine);
             wordleDeckList.add(fileLine);
         }
@@ -108,11 +112,12 @@ public class DataStorage{
 
         return wordleDeckList;
     }
-    public synchronized int[] getScores(String name) throws IOException{
+
+    public synchronized int[] getScores(String name) throws IOException {
         int[] scores = new int[3];
         BufferedReader userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
         String fileLine;
-        while ((fileLine = userDatabaseIn.readLine()) != null){
+        while ((fileLine = userDatabaseIn.readLine()) != null) {
             String[] splitFile = fileLine.split(":");
             if (splitFile[0].equals(name)) {
                 scores[0] = Integer.parseInt(splitFile[2]);
@@ -126,11 +131,32 @@ public class DataStorage{
 
     }
 
-    public synchronized void updateScores(String name,String oldScore,String password, int cumulativeScore, int numTimesFooledOthers, int numTimesFooledByOthers) throws IOException {
-        BufferedReader userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
-        BufferedWriter userDatabaseOut = new BufferedWriter(new FileWriter(userDatabase));
-        String fileLine, totalFile = "";
-        String newOut = name + ":" + password + ":" + cumulativeScore + ":" + numTimesFooledOthers + ":" + numTimesFooledByOthers;
+    public static void updateScores() throws IOException {
+        BufferedReader userDatabaseIn = new BufferedReader(new FileReader(new File("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt")));
+        PrintWriter userDatabaseOut = new PrintWriter(new File("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt"));
+        String fileLine;
+        //String newOut = name + ":" + password + ":" + cumulativeScore + ":" + numTimesFooledOthers + ":" + numTimesFooledByOthers;
+        ArrayList<String> updatedScores = new ArrayList<>();
+
+        while ((fileLine = userDatabaseIn.readLine()) != null) {
+            updatedScores.add(fileLine);
+        }
+        for (int i = 0; i < updatedScores.size(); i++) {
+            String[] splitFile = updatedScores.get(i).split(":");
+            for (int j = 0; i < ServerListener.allUsers.size(); j++) {
+                if (splitFile[0].equals(ServerListener.allUsers.get(j).substring(0, splitFile[0].length()))) {
+                    updatedScores.set(i, ServerListener.updatedScores.get(splitFile[0]));
+                }
+            }
+
+            for (int h = 0; h < updatedScores.size(); h++) {
+                userDatabaseOut.println(updatedScores.get(h));
+            }
+            //userDatabaseOut.flush();
+            userDatabaseOut.close();
+            userDatabaseIn.close();
+
+
 
 
         /*Path path = Paths.get("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt");
@@ -157,7 +183,7 @@ public class DataStorage{
         userDatabaseOut.flush();
         userDatabaseIn.close();
         userDatabaseOut.close();
-        */
+
 
 
         Path filePath = Paths.get(userDatabase.getPath());
@@ -171,15 +197,17 @@ public class DataStorage{
         }
 
         Files.write(filePath, fileContent, StandardCharsets.UTF_8);
+        */
+        }
     }
 
 
-    public void closer(){
+    public void closer() {
         try {
             wordleIn.close();
             //userDatabaseIn.close();
             userDatabaseOut.close();
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

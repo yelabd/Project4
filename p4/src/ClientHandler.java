@@ -128,11 +128,11 @@ public class ClientHandler extends Thread {
                             ServerListener.suggestionArray.put(gameToken, new HashMap<String, String>());
                             ServerListener.choiceArray.put(gameToken, new HashMap<String, String>());
                             ServerListener.scoreArray.put(gameToken, new ArrayList<String>());
-                            ServerListener.updatedScores.put(gameToken,new ArrayList<String>());
+                            //ServerListener.updatedScores.put(gameToken,new ArrayList<String>());
                             ServerListener.gameTokens.add(gameToken);
                             ServerListener.currentSession.get(splitInput[1]).setGameToken(gameToken);
                             ServerListener.currentSession.get(splitInput[1]).setLeader(true);
-                            ServerListener.allUsers.add(ServerListener.currentSession.get(splitInput[1]));
+                            ServerListener.allUsers.add(playerName);
                             out.println(startResponse + "SUCCESS--" + gameToken);
 
                         break;
@@ -144,7 +144,7 @@ public class ClientHandler extends Thread {
                             out.println(joinResponse + "USERNOTLOGGEDIN");
                         } else {
                             this.gameToken = splitInput[2];
-                            ServerListener.allUsers.add(ServerListener.currentSession.get(splitInput[1]));
+                            ServerListener.allUsers.add(playerName);
                             ServerListener.gameArray.get(this.gameToken).add(splitInput[1]);
                             //TODO: Find shorter way to do the line below
                             ServerListener.handlerStorage.get(ServerListener.currentSession.get(ServerListener.gameArray.get(this.gameToken).get(0)).getUserID()).out.println("NEWPARTICIPANT--" + ServerListener.currentSession.get(playerToken).getUsername() + "--0");
@@ -260,6 +260,7 @@ public class ClientHandler extends Thread {
                                 }
 
                             }
+
                             //out.println("ROUNDRESULT" + output);
                             if (ServerListener.currentSession.get(splitInput[1]).isLeader()) {
                                 if (ServerListener.deckCollections.get(splitInput[2]).size() > 0) {
@@ -291,6 +292,7 @@ public class ClientHandler extends Thread {
                         }
                         break;
                     case "LOGOUT":
+                        UpdateScores.updateScores();
                         break mainLoop;
 
                     default:
@@ -369,6 +371,7 @@ public class ClientHandler extends Thread {
         String message = "Default";
         String oldScore = this.playerName+":"+playerPassword+":"+cumulativeScore+":"+numTimesFooledOthers+":"+numTimesFooledByOthers;
 
+
         if (currentChoice.equals(currentAnswer)) {
             cumulativeScore += 10;
             message = "You got it right!";
@@ -388,9 +391,12 @@ public class ClientHandler extends Thread {
                 numTimesFooledOthers++;
             }
         }
+        String score = playerName+":"+playerPassword+":"+cumulativeScore+":"+numTimesFooledOthers+":"+numTimesFooledByOthers;
+        ServerListener.updatedScores.put(playerName,score);
         String outFinal = ServerListener.currentSession.get(userToken).getUsername() + "--" + message + "--" + cumulativeScore + "--" + numTimesFooledByOthers + "--" + numTimesFooledOthers;
         String newOut = playerName + ":" + playerPassword  + ":" + cumulativeScore  + ":" + numTimesFooledOthers + ":" + numTimesFooledByOthers;
-        ServerListener.updatedScores.get(gameToken).add(newOut);
+
+        //ServerListener.updatedScores.get(gameToken).add(newOut);
 
 
         /*

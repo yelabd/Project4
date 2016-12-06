@@ -23,13 +23,14 @@ public class ServerListener {
     public static HashMap<String, HashMap<String,String>> suggestionArray = new HashMap<>();
     public static HashMap<String, HashMap<String,String>> choiceArray = new HashMap<>();
     public static HashMap<String, Boolean> loggedOn = new HashMap<>();
-    public static HashMap<String, ArrayList<String>> updatedScores = new HashMap<>();
+    public static HashMap<String, String> updatedScores = new HashMap<>();
     public static HashMap<String, ArrayList<String>> scoreArray = new HashMap<>();
     public static ArrayList<String> entireDeck = new ArrayList<String>();
+    //public static HashMap<String ,ArrayList<String>>
     public static HashMap<String,ArrayList<String>> deckCollections = new HashMap<>();
     //public static HashMap<String, ArrayList<String>> suggestionStorage = new HashMap<>();
     //public static HashMap<String, Boolean> gameStarted = new HashMap<>();
-    public static ArrayList<UserInfo> allUsers = new ArrayList<>();
+    public static ArrayList<String> allUsers = new ArrayList<>();
     public static ArrayList<String> gameTokens = new ArrayList<>();
     public static int userID = 0;
     public static final String ANSI_RESET = "\u001B[0m";
