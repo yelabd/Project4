@@ -1,8 +1,5 @@
 import com.sun.org.apache.xerces.internal.util.URI;
-import com.sun.org.apache.xpath.internal.operations.Bool;
-import com.sun.xml.internal.messaging.saaj.util.JaxmURI;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
-import sun.jvm.hotspot.ui.action.HSDBActionManager;
+
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -45,11 +42,11 @@ public class ServerListener {
 
     public static void main(String[] args) throws IOException {
         try{
-        startClient();
+            startClient();
 
-    }catch (IOException e){
-        e.printStackTrace();
-    }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     public static void startClient() throws IOException {

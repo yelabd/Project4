@@ -1,5 +1,3 @@
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
-
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -8,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Created by youssefelabd on 11/26/16.
@@ -21,11 +20,11 @@ public class DataStorage {
 
     public DataStorage() throws IOException {
 
-        wordle = new File("/Users/farhanshafi/Desktop/cs rough/Project4/WordleDeck.txt");
-        //wordle = new File("./UserDatabase");
+        //wordle = new File("/Users/youssefelabd/Desktop/cs180/Project4/WordleDeck.txt");
+        userDatabase = new File("./UserDatabase");
 
-        userDatabase = new File("/Users/farhanshafi/Desktop/cs rough/Project4/UserDatabase.txt");
-        //userDatabase = new File("./WordleDeck");
+        //userDatabase = new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt");
+        wordle = new File("./WordleDeck");
 
         if (!wordle.exists()) {
             wordle.createNewFile();
@@ -33,9 +32,9 @@ public class DataStorage {
         if (!userDatabase.exists()) {
             userDatabase.createNewFile();
         }
-        wordleIn = new BufferedReader(new FileReader(wordle));
+        //wordleIn = new BufferedReader(new FileReader(wordle));
         //userDatabaseIn = new BufferedReader(new FileReader(userDatabase));
-        userDatabaseOut = new BufferedWriter(new FileWriter(userDatabase, true));
+        //userDatabaseOut = new BufferedWriter(new FileWriter(userDatabase, true));
 
     }
 
@@ -45,12 +44,12 @@ public class DataStorage {
         while ((fileLine = userDatabaseIn.readLine()) != null) {
             String[] splitFile = fileLine.split(":");
             if (splitFile[0].equals(username)) {
-                closer();
+                //closer();
                 return true;
             }
         }
         userDatabaseIn.close();
-        closer();
+        //closer();
         return false;
     }
 
@@ -62,13 +61,13 @@ public class DataStorage {
             String[] splitFile = fileLine.split(":");
             if (splitFile[0].equals(username)) {
                 if (splitFile[1].equals(password)) {
-                    closer();
+                    //closer();
                     return true;
                 }
             }
         }
         userDatabaseIn.close();
-        closer();
+        //closer();
         return false;
     }
 
@@ -78,12 +77,12 @@ public class DataStorage {
         while ((fileLine = userDatabaseIn.readLine()) != null) {
             String[] splitFile = fileLine.split(":");
             if (splitFile[1].equals(password)) {
-                closer();
+                //closer();
                 return true;
             }
         }
         userDatabaseIn.close();
-        closer();
+        //closer();
         return false;
     }
 
@@ -94,7 +93,7 @@ public class DataStorage {
         userDatabaseOut.newLine();
         userDatabaseOut.flush();
         userDatabaseOut.close();
-        closer();
+        //closer();
     }
 
     public static ArrayList<String> wordleDeckGetter() throws IOException {
@@ -131,74 +130,74 @@ public class DataStorage {
 
     }
 
-    public static void updateScores() throws IOException {
-        BufferedReader userDatabaseIn = new BufferedReader(new FileReader(new File("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt")));
-        PrintWriter userDatabaseOut = new PrintWriter(new File("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt"));
-        String fileLine;
-        //String newOut = name + ":" + password + ":" + cumulativeScore + ":" + numTimesFooledOthers + ":" + numTimesFooledByOthers;
-        ArrayList<String> updatedScores = new ArrayList<>();
+    public static void updateScores()  {
 
-        while ((fileLine = userDatabaseIn.readLine()) != null) {
-            updatedScores.add(fileLine);
-        }
-        for (int i = 0; i < updatedScores.size(); i++) {
-            String[] splitFile = updatedScores.get(i).split(":");
-            for (int j = 0; i < ServerListener.allUsers.size(); j++) {
-                if (splitFile[0].equals(ServerListener.allUsers.get(j).substring(0, splitFile[0].length()))) {
-                    updatedScores.set(i, ServerListener.updatedScores.get(splitFile[0]));
+        //File originalFile = new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt");
+        File originalFile = new File("./UserDatabase");
+
+
+
+        Scanner scanner;
+        //scanner = new Scanner(originalFile);
+        ArrayList<String> updatedScores = new ArrayList<>();
+        try{
+            BufferedReader userDatabaseIn = new BufferedReader(new FileReader(new File("./UserDatabase")));
+            //BufferedReader userDatabaseIn = new BufferedReader(new FileReader(new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt")));
+            //PrintWriter userDatabaseOut = new PrintWriter(new File("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt"));
+            //File tempFile = new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt");
+            String fileLine;
+            //String newOut = name + ":" + password + ":" + cumulativeScore + ":" + numTimesFooledOthers + ":" + numTimesFooledByOthers;
+
+            while ((fileLine = userDatabaseIn.readLine()) != null) {
+                updatedScores.add(fileLine);
+            }
+
+            for (int i = 0; i < updatedScores.size(); i++) {
+                //System.out.println(updatedScores.get(i));
+                String[] splitFile = updatedScores.get(i).split(":");
+                for (int j = 0; j < ServerListener.allUsers.size(); j++) {
+                    if (splitFile[0].equals(ServerListener.allUsers.get(j).substring(0, splitFile[0].length()))) {
+                        //System.out.println(ServerListener.updatedScores.get(splitFile[0]));
+                        updatedScores.set(i, ServerListener.updatedScores.get(splitFile[0]));
+                        //System.out.println("Updated : " + updatedScores.get(i));
+                    }
                 }
             }
+            userDatabaseIn.close();
+        }catch (IOException e) {
+            System.err.println("IOException");
+        }
+
+        try {
+            BufferedWriter userDatabaseOut = new BufferedWriter(new FileWriter(originalFile));
+
 
             for (int h = 0; h < updatedScores.size(); h++) {
-                userDatabaseOut.println(updatedScores.get(h));
+                //System.out.println("Updated : " + updatedScores.get(h));
+                userDatabaseOut.write(updatedScores.get(h));
+                userDatabaseOut.newLine();
             }
-            //userDatabaseOut.flush();
+            userDatabaseOut.flush();
             userDatabaseOut.close();
-            userDatabaseIn.close();
 
+        } catch (IOException e) {
+            System.err.println("IOException");
 
-
-
-        /*Path path = Paths.get("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt");
-        Charset charset = StandardCharsets.UTF_8;
-
-        String content = new String(Files.readAllBytes(path), charset);
-        content = content.replaceAll(oldScore, newOut);
-        Files.write(path, content.getBytes(charset));
-
-
-        while ((fileLine = userDatabaseIn.readLine()) != null){
-            String[] splitFile = fileLine.split(":");
-            if (splitFile[0].equals(name)) {
-                String newOut1 = splitFile[0] + ":" + splitFile[1]  + ":" + cumulativeScore  + ":" + numTimesFooledOthers + ":" + numTimesFooledByOthers;
-                totalFile += newOut1;
-            }
-            else{
-                totalFile+= fileLine;
-            }
         }
 
-        userDatabaseOut.write(totalFile);
-        userDatabaseOut.newLine();
-        userDatabaseOut.flush();
-        userDatabaseIn.close();
-        userDatabaseOut.close();
+        //userDatabaseOut.close();
+        //userDatabaseIn.close();
 
-
-
-        Path filePath = Paths.get(userDatabase.getPath());
-        List<String> fileContent = new ArrayList<>(Files.readAllLines(filePath, StandardCharsets.UTF_8));
-
-        for (int i = 0; i < fileContent.size(); i++) {
-            if (fileContent.get(i).equals(oldScore)) {
-                fileContent.set(i, newOut);
-                break;
+            /*if (!originalFile.delete()) {
+                System.out.println("Could not delete file");
+                return;
             }
-        }
 
-        Files.write(filePath, fileContent, StandardCharsets.UTF_8);
-        */
-        }
+            if (!tempFile.renameTo(originalFile))
+                System.out.println("Could not rename file");
+                */
+
+
     }
 
 
