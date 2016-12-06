@@ -25,8 +25,8 @@ public class CredentialChecker {
 
         }
         return true;
-
     }
+
     public static boolean passwordChecker(String password){
         String set = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ#$&*0123456789";
         String uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -61,10 +61,8 @@ public class CredentialChecker {
             if (!isUppercase || !isDigit){
                 return false;
             }
-
         }
         return true;
-
     }
 
 }

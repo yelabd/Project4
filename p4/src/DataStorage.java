@@ -21,10 +21,10 @@ public class DataStorage {
 
     public DataStorage() throws IOException {
 
-        wordle = new File("/Users/youssefelabd/Desktop/cs180/project4/WordleDeck.txt");
+        wordle = new File("/Users/farhanshafi/Desktop/cs rough/Project4/WordleDeck.txt");
         //wordle = new File("./UserDatabase");
 
-        userDatabase = new File("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt");
+        userDatabase = new File("/Users/farhanshafi/Desktop/cs rough/Project4/UserDatabase.txt");
         //userDatabase = new File("./WordleDeck");
 
         if (!wordle.exists()) {
