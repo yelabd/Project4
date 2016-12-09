@@ -109,29 +109,29 @@ public class ClientHandler extends Thread {
                         //TODO: add other status cases
                         String gameToken = TokenGenerators.gameToken();
 
-                            if (ServerListener.gameTokens.size() > 0) {
-                                while (!checkGameToken(gameToken)) {
-                                    gameToken = TokenGenerators.gameToken();
-                                }
+                        if (ServerListener.gameTokens.size() > 0) {
+                            while (!checkGameToken(gameToken)) {
+                                gameToken = TokenGenerators.gameToken();
                             }
-                            //ArrayList<UserInfo> userInfoArrayList = new ArrayList<UserInfo>();
-                            //userInfoArrayList.add(ServerListener.currentSession.get(splitInput[1]));
-                            //ServerListener.gameSession.put(gameToken,ServerListener.sessionStorage.add());
-                            this.gameToken = gameToken;
-                            //ServerListener.gameSessionInfo.put(gameToken,new GameSession(gameToken,splitInput[1],userID));
-                            //leaderControl = new GameSession(gameToken,splitInput[1],userID);
-                            ServerListener.gameArray.put(gameToken, new ArrayList<String>());
-                            //ServerListener.suggestionArray.put(gameToken,new ArrayList<String>());
-                            ServerListener.gameArray.get(gameToken).add(splitInput[1]);
-                            ServerListener.suggestionArray.put(gameToken, new HashMap<String, String>());
-                            ServerListener.choiceArray.put(gameToken, new HashMap<String, String>());
-                            ServerListener.scoreArray.put(gameToken, new ArrayList<String>());
-                            //ServerListener.updatedScores.put(gameToken,new ArrayList<String>());
-                            ServerListener.gameTokens.add(gameToken);
-                            ServerListener.currentSession.get(splitInput[1]).setGameToken(gameToken);
-                            ServerListener.currentSession.get(splitInput[1]).setLeader(true);
-                            ServerListener.allUsers.add(playerName);
-                            out.println(startResponse + "SUCCESS--" + gameToken);
+                        }
+                        //ArrayList<UserInfo> userInfoArrayList = new ArrayList<UserInfo>();
+                        //userInfoArrayList.add(ServerListener.currentSession.get(splitInput[1]));
+                        //ServerListener.gameSession.put(gameToken,ServerListener.sessionStorage.add());
+                        this.gameToken = gameToken;
+                        //ServerListener.gameSessionInfo.put(gameToken,new GameSession(gameToken,splitInput[1],userID));
+                        //leaderControl = new GameSession(gameToken,splitInput[1],userID);
+                        ServerListener.gameArray.put(gameToken, new ArrayList<String>());
+                        //ServerListener.suggestionArray.put(gameToken,new ArrayList<String>());
+                        ServerListener.gameArray.get(gameToken).add(splitInput[1]);
+                        ServerListener.suggestionArray.put(gameToken, new HashMap<String, String>());
+                        ServerListener.choiceArray.put(gameToken, new HashMap<String, String>());
+                        ServerListener.scoreArray.put(gameToken, new ArrayList<String>());
+                        //ServerListener.updatedScores.put(gameToken,new ArrayList<String>());
+                        ServerListener.gameTokens.add(gameToken);
+                        ServerListener.currentSession.get(splitInput[1]).setGameToken(gameToken);
+                        ServerListener.currentSession.get(splitInput[1]).setLeader(true);
+                        ServerListener.allUsers.add(playerName);
+                        out.println(startResponse + "SUCCESS--" + gameToken);
 
                         break;
                     case "JOINGAME":

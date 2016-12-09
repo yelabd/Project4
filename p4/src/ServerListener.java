@@ -42,11 +42,11 @@ public class ServerListener {
 
     public static void main(String[] args) throws IOException {
         try{
-        startClient();
+            startClient();
 
-    }catch (IOException e){
-        e.printStackTrace();
-    }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     public static void startClient() throws IOException {
