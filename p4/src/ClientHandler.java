@@ -1,5 +1,3 @@
-import com.sun.corba.se.spi.activation.Server;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -58,7 +56,7 @@ public class ClientHandler extends Thread {
         while (true) {
             inFromClient = in.readLine();
             if (inFromClient == null) {
-
+                DataStorage.updateScores();
             } else {
                 System.out.println((char) 27 + "[34;1mClient " + userID + ": " + ANSI_RESET + inFromClient);
                 splitInput = inFromClient.split("--");
@@ -292,7 +290,7 @@ public class ClientHandler extends Thread {
                         }
                         break;
                     case "LOGOUT":
-                        UpdateScores.updateScores();
+                        DataStorage.updateScores();
                         break mainLoop;
 
                     default:
@@ -368,7 +366,7 @@ public class ClientHandler extends Thread {
     }
 
     public String calculateScores(String userToken, String gameToken) {
-        String message = "Default";
+        String message = "You fooled yourself";
         String oldScore = this.playerName+":"+playerPassword+":"+cumulativeScore+":"+numTimesFooledOthers+":"+numTimesFooledByOthers;
 
 
