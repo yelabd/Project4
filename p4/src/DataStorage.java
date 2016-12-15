@@ -20,11 +20,11 @@ public class DataStorage {
 
     public DataStorage() throws IOException {
 
-        //wordle = new File("/Users/youssefelabd/Desktop/cs180/Project4/WordleDeck.txt");
-        userDatabase = new File("./UserDatabase");
+        wordle = new File("/Users/youssefelabd/Desktop/cs180/Project4/WordleDeck.txt");
+        //userDatabase = new File("./UserDatabase");
 
-        //userDatabase = new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt");
-        wordle = new File("./WordleDeck");
+        userDatabase = new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt");
+        //wordle = new File("./WordleDeck");
 
         if (!wordle.exists()) {
             wordle.createNewFile();
@@ -132,8 +132,8 @@ public class DataStorage {
 
     public static void updateScores()  {
 
-        //File originalFile = new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt");
-        File originalFile = new File("./UserDatabase");
+        File originalFile = new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt");
+        //File originalFile = new File("./UserDatabase");
 
 
 
@@ -141,8 +141,8 @@ public class DataStorage {
         //scanner = new Scanner(originalFile);
         ArrayList<String> updatedScores = new ArrayList<>();
         try{
-            BufferedReader userDatabaseIn = new BufferedReader(new FileReader(new File("./UserDatabase")));
-            //BufferedReader userDatabaseIn = new BufferedReader(new FileReader(new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt")));
+            //BufferedReader userDatabaseIn = new BufferedReader(new FileReader(new File("./UserDatabase")));
+            BufferedReader userDatabaseIn = new BufferedReader(new FileReader(new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt")));
             //PrintWriter userDatabaseOut = new PrintWriter(new File("/Users/youssefelabd/Desktop/cs180/project4/UserDatabase.txt"));
             //File tempFile = new File("/Users/youssefelabd/Desktop/cs180/Project4/UserDatabase.txt");
             String fileLine;

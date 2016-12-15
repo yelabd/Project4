@@ -60,7 +60,7 @@ public class ClientHandler extends Thread {
             } else {
                 System.out.println((char) 27 + "[34;1mClient " + userID + ": " + ANSI_RESET + inFromClient);
                 splitInput = inFromClient.split("--");
-                //check if user already exists (1) and invalid message format (2)
+                //TODO: check if user already exists (1) and invalid message format (2)
                 String firstInput = splitInput[0];
                 switch (firstInput) {
                     case "CREATENEWUSER":
@@ -114,19 +114,12 @@ public class ClientHandler extends Thread {
                                 gameToken = TokenGenerators.gameToken();
                             }
                         }
-                        //ArrayList<UserInfo> userInfoArrayList = new ArrayList<UserInfo>();
-                        //userInfoArrayList.add(ServerListener.currentSession.get(splitInput[1]));
-                        //ServerListener.gameSession.put(gameToken,ServerListener.sessionStorage.add());
                         this.gameToken = gameToken;
-                        //ServerListener.gameSessionInfo.put(gameToken,new GameSession(gameToken,splitInput[1],userID));
-                        //leaderControl = new GameSession(gameToken,splitInput[1],userID);
                         ServerListener.gameArray.put(gameToken, new ArrayList<String>());
-                        //ServerListener.suggestionArray.put(gameToken,new ArrayList<String>());
                         ServerListener.gameArray.get(gameToken).add(splitInput[1]);
                         ServerListener.suggestionArray.put(gameToken, new HashMap<String, String>());
                         ServerListener.choiceArray.put(gameToken, new HashMap<String, String>());
                         ServerListener.scoreArray.put(gameToken, new ArrayList<String>());
-                        //ServerListener.updatedScores.put(gameToken,new ArrayList<String>());
                         ServerListener.gameTokens.add(gameToken);
                         ServerListener.currentSession.get(splitInput[1]).setGameToken(gameToken);
                         ServerListener.currentSession.get(splitInput[1]).setLeader(true);
@@ -147,26 +140,6 @@ public class ClientHandler extends Thread {
                             //TODO: Find shorter way to do the line below
                             ServerListener.handlerStorage.get(ServerListener.currentSession.get(ServerListener.gameArray.get(this.gameToken).get(0)).getUserID()).out.println("NEWPARTICIPANT--" + ServerListener.currentSession.get(playerToken).getUsername() + "--0");
                             out.println(joinResponse + "SUCCESS--" + splitInput[2]);
-                            //if (ServerListener.gameSessionInfo.get(splitInput[2]).gameToken.equals(splitInput[2])){
-                            /*if(leaderControl.gameToken.equals(splitInput[2])){
-                                //ServerListener.gameSessionInfo.get(splitInput[2]).players.add(splitInput[1]);
-                                ServerListener.handlerStorage.get(ServerListener.gameSessionInfo.get(splitInput[2]).leaderID).out.println("NEWPARTICIPANT--"+ServerListener.currentSession.get(playerToken).getUsername()+"--0");
-                                out.println(joinResponse+"SUCCESS--"+splitInput[2]);
-                            }else {
-                                System.out.println("\u001B[35;1mExpected error: Could not send message to user; Attempt Number: ");//+(i+1)+"/"+ServerListener.allUsers.size());
-                            }
-                            /*
-                            subloop : for(int i = 0; i < ServerListener.allUsers.size();i++){
-                                if (ServerListener.allUsers.get(i).isLeader() && ServerListener.allUsers.get(i).getGameToken().equals(splitInput[2])){
-                                    ServerListener.handlerStorage.get(ServerListener.allUsers.get(i).getUserID()).out.println("NEWPARTICIPANT--"+ServerListener.currentSession.get(playerToken).getUsername()+"--0"); //TODO: add correct score
-                                    System.out.println("\u001B[36;1mSent message to Leader with ID: "+ANSI_RESET+ServerListener.allUsers.get(i).getUserID());
-                                    ServerListener.currentSession.get(splitInput[1]).setGameToken(splitInput[2]);
-                                    break subloop;
-                                }else{
-                                    System.out.println("\u001B[35;1mExpected error: Could not send message to user; Attempt Number: "+(i+1)+"/"+ServerListener.allUsers.size());
-                                }
-                                */
-                            //out.println("NEWPARTICIPANT--"+ServerListener.currentSession.get(splitInput[1]).getUsername()+"--0");
                         }
                         break;
                     case "ALLPARTICIPANTSHAVEJOINED":
@@ -182,12 +155,10 @@ public class ClientHandler extends Thread {
                             currentAnswer = currentCard[1];
                             ServerListener.deckCollections.get(splitInput[2]).remove(0);
                             ArrayList<String> temp = ServerListener.gameArray.get(splitInput[2]);
-                            //ServerListener.gameSessionInfo.get(splitInput[2]).collectPlayers();
                             for (int i = 0; i < temp.size(); i++) {
                                 ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).out.println("NEWGAMEWORD--" + currentCard[0] + "--" + currentCard[1]);
                                 ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).currentCard = this.currentCard;
                                 ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).currentAnswer = this.currentAnswer;
-                                //System.out.println(ServerListener.gameSessionInfo.get(splitInput[2]).players.size());
                             }
 
                         }
@@ -201,7 +172,6 @@ public class ClientHandler extends Thread {
                             out.println(playerSuggestion + "INVALIDGAMETOKEN");
                         } else {
                             currentSuggestion = splitInput[3];
-                            //ServerListener.suggestionArray.put(splitInput[2],new HashMap<String,String>());
                             ServerListener.suggestionArray.get(splitInput[2]).put(splitInput[1], currentSuggestion);
 
                             while (ServerListener.suggestionArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()) {
@@ -222,7 +192,6 @@ public class ClientHandler extends Thread {
                                     ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).out.println(finalOut);
                                 }
                             }
-                            //System.out.println("Made it");
                         }
                         break;
                     case "PLAYERCHOICE":
@@ -234,17 +203,14 @@ public class ClientHandler extends Thread {
                             out.println(choiceReponse + "INVALIDGAMETOKEN");
                         } else {
                             currentChoice = splitInput[3];
-                            //ServerListener.suggestionArray.put(splitInput[2],new HashMap<String,String>());
                             ServerListener.choiceArray.get(splitInput[2]).put(splitInput[1], currentChoice);
 
 
                             while (ServerListener.choiceArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()) {
                             }
-                            //System.out.println("Here1");
                             ServerListener.scoreArray.get(splitInput[2]).add(calculateScores(splitInput[1], splitInput[2]));
                             while (ServerListener.scoreArray.get(splitInput[2]).size() != ServerListener.gameArray.get(splitInput[2]).size()) {
                             }
-                            //System.out.println("Here2");
                             if (ServerListener.currentSession.get(splitInput[1]).isLeader()) {
                                 String output = "";
 
@@ -259,7 +225,6 @@ public class ClientHandler extends Thread {
 
                             }
 
-                            //out.println("ROUNDRESULT" + output);
                             if (ServerListener.currentSession.get(splitInput[1]).isLeader()) {
                                 if (ServerListener.deckCollections.get(splitInput[2]).size() > 0) {
                                     currentCard = ServerListener.deckCollections.get(splitInput[2]).get(0).split(":");
@@ -269,12 +234,10 @@ public class ClientHandler extends Thread {
                                     ServerListener.scoreArray.get(splitInput[2]).clear();
                                     ServerListener.suggestionArray.get(splitInput[2]).clear();
                                     ArrayList<String> temp = ServerListener.gameArray.get(splitInput[2]);
-                                    //ServerListener.gameSessionInfo.get(splitInput[2]).collectPlayers();
                                     for (int i = 0; i < temp.size(); i++) {
                                         ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).out.println("NEWGAMEWORD--" + currentCard[0] + "--" + currentCard[1]);
                                         ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).currentCard = this.currentCard;
                                         ServerListener.handlerStorage.get(ServerListener.currentSession.get(temp.get(i)).getUserID()).currentAnswer = this.currentAnswer;
-                                        //System.out.println(ServerListener.gameSessionInfo.get(splitInput[2]).players.size());
                                     }
                                 } else {
                                     ArrayList<String> temp = ServerListener.gameArray.get(splitInput[2]);
@@ -284,8 +247,6 @@ public class ClientHandler extends Thread {
 
                                     }
                                 }
-
-                                //System.out.println("Made it");
                             }
                         }
                         break;
@@ -294,7 +255,6 @@ public class ClientHandler extends Thread {
                         break mainLoop;
 
                     default:
-                        //out.println();
                 }
             }
 
@@ -339,7 +299,6 @@ public class ClientHandler extends Thread {
     }
 
     public void startGame(String gameToken, String leaderToken) {
-        //ServerListener.gameStarted.put(gameToken,true);
         ArrayList<String> wordleDeck = null;
         try {
             wordleDeck = DataStorage.wordleDeckGetter();
@@ -393,25 +352,6 @@ public class ClientHandler extends Thread {
         ServerListener.updatedScores.put(playerName,score);
         String outFinal = ServerListener.currentSession.get(userToken).getUsername() + "--" + message + "--" + cumulativeScore + "--" + numTimesFooledByOthers + "--" + numTimesFooledOthers;
         String newOut = playerName + ":" + playerPassword  + ":" + cumulativeScore  + ":" + numTimesFooledOthers + ":" + numTimesFooledByOthers;
-
-        //ServerListener.updatedScores.get(gameToken).add(newOut);
-
-
-        /*
-        if (ServerListener.currentSession.get(playerToken).isLeader()){
-            while(ServerListener.updatedScores.get(gameToken).size() != ServerListener.gameArray.get(gameToken).size()){
-            }
-
-        }
-
-
-        try {
-            DataStorage ds = new DataStorage();
-            ds.updateScores(playerName,oldScore,playerPassword,cumulativeScore,numTimesFooledOthers,numTimesFooledByOthers);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-          */
 
         return outFinal;
 

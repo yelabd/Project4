@@ -5,12 +5,15 @@ import java.io.IOException;
  */
 public class tester {
     public static void main(String[] args) throws IOException {
-            DataStorage triy = new DataStorage();
+           /* DataStorage triy = new DataStorage();
 
         triy.addUser("halo","dfdf");
 
         //splitter("this--is--not--one--word");
-
+        */
+           //System.out.println(2.734%2);
+            boolean a = true || false;
+            System.out.println(a);
     }
     public static void splitter(String toSplit){
         String[] first;

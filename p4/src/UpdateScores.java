@@ -61,18 +61,6 @@ public class UpdateScores {
 
         }
 
-            //userDatabaseOut.close();
-            //userDatabaseIn.close();
-
-            /*if (!originalFile.delete()) {
-                System.out.println("Could not delete file");
-                return;
-            }
-
-            if (!tempFile.renameTo(originalFile))
-                System.out.println("Could not rename file");
-                */
-
         }
     }
 

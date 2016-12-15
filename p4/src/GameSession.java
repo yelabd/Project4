@@ -47,14 +47,5 @@ public class GameSession {
     public static int getGameWordsLeftGetter(){
         return gameWordsLeft;
     }
-    /*
-    public static void collectPlayers(){
-        for (int i = 0;i < ServerListener.allUsers.size();i++){
-                   if (ServerListener.allUsers.get(i).getGameToken().equals(gameToken)){
-                players.add(ServerListener.allUsers.get(i).getUserToken());
-            }
-        }
-    }
-    */
 
 }
